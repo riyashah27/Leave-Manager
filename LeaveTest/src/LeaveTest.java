@@ -1,20 +1,19 @@
 import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import static java.lang.System.out;
 
-class LeaveRequest {
+class LeaveRequest implements Serializable{
     int requestId;
     String reason;
     int days;
 }
 
-class Employee {
-    List<Object> leaveRequest = new ArrayList<Object>();
+class Employee implements Serializable{
+    ArrayList<LeaveRequest> leaveRequest = new ArrayList<LeaveRequest>();
     private int empno;
     private String name;
     private int availableLeave;
@@ -57,15 +56,57 @@ class Employee {
 
 class Manager implements Serializable {
     private Employee emp = new Employee();
-    Manager(int empno) {
+    void mkEmployee(int empno) {
         try {
             FileInputStream fileIn = new FileInputStream("employee.txt");
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            while(in!=null && in.available()!=0){
-                emp = (Employee)in.readObject();
+            ArrayList<Employee> allEmployees = (ArrayList<Employee>) in.readObject();
+
+            for(int i = 0; i < allEmployees.size(); i++){
+                emp = allEmployees.get(i);
+                emp.viewLeaveSummary();
+                out.println("-----------------------  "+ emp.getEmpNo() +"  ----------------------------");
                 if(emp.getEmpNo() == empno)
                     break;
             }
+            in.close();
+            fileIn.close();
+        }
+        catch (ClassNotFoundException e) {
+            out.println("Employee Not Found");
+        }
+        catch (Exception e) {
+            out.println("Data Stream Error");
+            e.printStackTrace();
+        }
+    }
+
+    Employee getDetails() {
+        return emp;
+    }
+
+    void setDetails() {
+        try {
+            FileInputStream fileIn = new FileInputStream("employee.txt");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            ArrayList<Employee> allEmployees = (ArrayList<Employee>) in.readObject();
+            Employee newEmp;
+            for(int i = 0; i < allEmployees.size(); i++){
+                newEmp = allEmployees.get(i);
+                if(newEmp.getEmpNo() == emp.getEmpNo()) {
+                    allEmployees.remove(i);
+                    allEmployees.add(i, emp);
+
+                    FileOutputStream fileOut = new FileOutputStream("employee.ser");
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                    out.writeObject(allEmployees);
+                    out.close();
+                    fileOut.close();
+                    break;
+                }
+            }
+            in.close();
+            fileIn.close();
         }
         catch (ClassNotFoundException e) {
             out.println("Employee Not Found");
@@ -73,10 +114,6 @@ class Manager implements Serializable {
         catch (Exception e) {
             out.println("Data Stream Error");
         }
-    }
-
-    Employee getDetails() {
-        return emp;
     }
 }
 
@@ -88,7 +125,8 @@ public class LeaveTest {
         int empno = sc.nextInt();
         out.println();
 
-        Manager mn = new Manager(empno);
+        Manager mn = new Manager();
+        mn.mkEmployee(empno);
         Employee emp = mn.getDetails();
 
         out.println("1. View Applied Leaves");
@@ -122,6 +160,7 @@ public class LeaveTest {
 
                     out.println();
                     emp.applyLeave(addRequest);
+                    mn.setDetails();
                     out.println("Leave Details: " + addRequest.toString());
                     flag = false;
                     break;
@@ -135,6 +174,7 @@ public class LeaveTest {
                     }
 
                     emp.cancelLeave	((LeaveRequest) emp.leaveRequest.get(id));
+                    mn.setDetails();
                     flag = false;
                     break;
 
@@ -146,5 +186,6 @@ public class LeaveTest {
                     out.println("Invalid Input");
             }
         } while(flag);
+        out.println("--- Exit ---");
     }
 }

@@ -62,28 +62,5 @@ public class XmlTest {
             ex.printStackTrace();
         }
 
-        try {
-            FileInputStream is = new FileInputStream("EmployeeObject.ser");
-            ObjectInputStream ois = new ObjectInputStream(is);
-            ArrayList<Emp> full = (ArrayList<Emp>) ois.readObject();
-            Emp myemps = new Emp();
-
-            for(int i = 0; i < full.size(); i++){
-                myemps = full.get(i);
-                System.out.println(myemps.id);
-                System.out.println(myemps.name);
-                for(int j = 0; j < myemps.leaves.size(); j++) {
-                    System.out.println(myemps.leaves.get(j).num);
-                    System.out.println(myemps.leaves.get(j).reason);
-                }
-                System.out.println();
-            }
-
-            ois.close();
-            is.close();
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
     }
 }
