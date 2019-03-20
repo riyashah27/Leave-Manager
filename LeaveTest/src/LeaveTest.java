@@ -10,6 +10,7 @@ import static java.lang.System.out;
 class LeaveRequest {
     int requestId;
     String reason;
+    int days;
 }
 
 class Employee {
@@ -22,17 +23,21 @@ class Employee {
     int getEmpNo() {
         return empno;
     }
+    int getAvailableLeave() {
+        return availableLeave;
+    }
+
     void applyLeave	(LeaveRequest req){
         leaveRequest.add(req);
-        availableLeave--;
-        currentLeaveCount++;
+        availableLeave -= req.days;
+        currentLeaveCount += req.days;
         out.println("Request Added");
     }
 
     void cancelLeave(LeaveRequest req) {
         leaveRequest.remove(req);
-        availableLeave++;
-        currentLeaveCount--;
+        availableLeave += req.days;
+        currentLeaveCount -= req.days;
         out.println("Request Cancelled");
     }
 
@@ -104,8 +109,18 @@ public class LeaveTest {
                     addRequest.requestId = emp.leaveRequest.size();
                     out.print("Enter Reason: ");
                     addRequest.reason = sc.next();
-                    out.println();
+                    out.print("Enter No of days:");
+                    int days = sc.nextInt();
+                    if(days > emp.getAvailableLeave()) {
+                        out.println("Requested Leave Days is More Than Available Days.");
+                        out.println("Leave cannot be added");
+                        break;
+                    }
+                    else {
+                        addRequest.days = days;
+                    }
 
+                    out.println();
                     emp.applyLeave(addRequest);
                     out.println("Leave Details: " + addRequest.toString());
                     flag = false;
@@ -113,14 +128,12 @@ public class LeaveTest {
 
                 case 3:
                     out.print("Enter Request Id: ");
-                    int id;
-                    while(true) {
-                        id = sc.nextInt();
-                        if((id < 0) || (id > emp.leaveRequest.size()))
-                            out.println("Invalid Request ID");
-                        else
-                            break;
+                    int id = sc.nextInt();
+                    if((id < 0) || (id > emp.leaveRequest.size())) {
+                        out.println("Invalid Request ID");
+                        break;
                     }
+
                     emp.cancelLeave	((LeaveRequest) emp.leaveRequest.get(id));
                     flag = false;
                     break;
